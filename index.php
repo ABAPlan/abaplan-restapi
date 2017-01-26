@@ -18,33 +18,32 @@ try {
     ));
 
     switch ($method) {
-    case 'GET':
+        case 'GET':
 
-        switch ($action) {
-        case 'maps':
-            if ($key) {
-                // if the id of the map is provided
-                $rep = array('id' => $key, 'name' => 'map with name');
+            switch ($action) {
+            case 'maps':
+                if ($key) {
+                    // if the id of the map is provided
 
-                $preparedStatement = $db->prepare('SELECT * FROM `maps` WHERE uid = :uid');
-                $preparedStatement->bindValue('uid', $key, PDO::PARAM_INT);
-                $preparedStatement->execute();
+                    $preparedStatement = $db->prepare('SELECT * FROM `maps` WHERE uid = :uid');
+                    $preparedStatement->bindValue('uid', $key, PDO::PARAM_INT);
+                    $preparedStatement->execute();
 
-                $rep = $preparedStatement->fetch(PDO::FETCH_ASSOC);
+                    $rep = $preparedStatement->fetch(PDO::FETCH_ASSOC);
 
-            } else {
-                // otherwise we provide the full list
-                //$rep = array(array('id' => 1, 'name'=>'toto'), array('id' => 2, 'name' => 'titi'));
-                $preparedStatement = $db->prepare('SELECT uid, title, city, creationDate FROM `maps`');
-                $preparedStatement->execute();
+                } else {
+                    // otherwise we provide the full list
+                    //$rep = array(array('id' => 1, 'name'=>'toto'), array('id' => 2, 'name' => 'titi'));
+                    $preparedStatement = $db->prepare('SELECT uid, title, city, creationDate FROM `maps`');
+                    $preparedStatement->execute();
 
-                $rep = $preparedStatement->fetchAll(PDO::FETCH_ASSOC);
+                    $rep = $preparedStatement->fetchAll(PDO::FETCH_ASSOC);
 
+                }
+                break;
             }
-            break;
-        }
 
-        break;
+            break;
 
         case 'POST':
             /*
@@ -68,7 +67,46 @@ try {
             } else {
                 $validationData['graphics'] = json_encode($receivedData['graphics']);
             }
+
             $rep = $validationData;
+
+            $sql = <<<'END'
+                INSERT INTO maps 
+                (`uid`, `creatorId`, `public`, `title`, `height`, `width`, `extent`, `hash`, `graphics`, `city`, `creationDate`)
+                VALUES
+                (NULL, :creatorId, :public, :title, :height, :width, :extent, :hash, :graphics, :city, NOW());
+END;
+
+            try {
+                $preparedStatement = $db->prepare($sql);
+
+                $preparedStatement->bindValue('creatorId',  $validationData['creatorId'],  PDO::PARAM_INT);
+                $preparedStatement->bindValue('height',     $validationData['height'],     PDO::PARAM_INT);
+                $preparedStatement->bindValue('public',     $validationData['public'],     PDO::PARAM_BOOL);
+                $preparedStatement->bindValue('title',      $validationData['title'],      PDO::PARAM_STR);
+                $preparedStatement->bindValue('width',      $validationData['width'],      PDO::PARAM_INT);
+                $preparedStatement->bindValue('hash',       $validationData['hash'],       PDO::PARAM_STR);
+                $preparedStatement->bindValue('extent',     $validationData['extent'],     PDO::PARAM_STR); // map coordinates
+                $preparedStatement->bindValue('city',       $validationData['city'],       PDO::PARAM_BOOL);
+
+                // graphics on the map
+                if (is_null($validationData['graphics'])) {
+                    $preparedStatement->bindValue('graphics', null, PDO::PARAM_NULL);
+                } else {
+                    $preparedStatement->bindValue('graphics', $validationData['graphics'], PDO::PARAM_STR);
+                }
+
+
+                $preparedStatement->execute();
+                $id= $db->lastInsertId();
+                //$rep = array('id' => $test);
+
+            } catch (Exception $e) {
+                if ($conf['displayError']) {
+                    print "Erreur !: " . $e->getMessage();
+                }
+                die();
+            }
             break;
 
     }
