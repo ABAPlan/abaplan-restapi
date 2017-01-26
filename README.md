@@ -1,6 +1,6 @@
 # Rest API proxy
 
-_Please, don't put production server db credentials_
+_Please, don't put production server db credentials. Ask credentials.php to the admin (jca)_
 
 ## How to run
 ```
