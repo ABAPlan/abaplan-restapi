@@ -50,7 +50,25 @@ try {
             /*
              * insert a map in the DB and get back the id
              */
-            $rep = array('id' => 33);
+            $receivedData = json_decode(file_get_contents('php://input'), true); 
+            $validationData = array(
+                'height'    => filter_var($receivedData['height'],      FILTER_VALIDATE_INT),
+                'width'     => filter_var($receivedData['width'],       FILTER_VALIDATE_INT),
+                'city'      => filter_var($receivedData['city'],        FILTER_VALIDATE_BOOLEAN),
+                'hash'      => filter_var($receivedData['hash'],        FILTER_SANITIZE_STRING),
+                'title'     => filter_var($receivedData['title'],       FILTER_SANITIZE_STRING),
+                'creatorId' => filter_var($receivedData['creatorId'],   FILTER_VALIDATE_INT),
+                'public'    => filter_var($receivedData['mapIsPublic'], FILTER_VALIDATE_BOOLEAN),
+            );
+
+            $validationData['extent'] = json_encode($receivedData['extent']);
+
+            if (empty($receivedData['graphics'])) {
+                $validationData['graphics'] = null;
+            } else {
+                $validationData['graphics'] = json_encode($receivedData['graphics']);
+            }
+            $rep = $validationData;
             break;
 
     }
