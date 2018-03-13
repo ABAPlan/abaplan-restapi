@@ -86,7 +86,11 @@ class MapRegistryActor extends Actor with ActorLogging {
 
     case CreateMap(map) =>
       // Convert map to tuple
-      maps += ArcgisMap.unapply(map).get
+      println("************", map)
+      maps += (None, true, "test", 333, 444, "{id: 33}", Some("<graphics>"), true, Some(DateTime.now()))
+      val insertAction = maps += ArcgisMap.unapply(map).get
+      db.run(insertAction).map(i => println("--------", i))
+      println("************")
       sender() ! ActionPerformed(s"Map ${map.uid} created.")
 
     case GetMap(id) =>
