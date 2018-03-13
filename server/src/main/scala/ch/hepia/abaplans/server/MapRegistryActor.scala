@@ -17,10 +17,10 @@ import org.joda.time.DateTime
 import com.github.tototoshi.slick.MySQLJodaSupport._
 
 final case class ArcgisMaps(seq: Seq[ArcgisMap])
-final case class ArcgisMap(id: Option[Int], public: Boolean, title: String, height: Int, width: Int, extent: String, graphics: Option[String], city: Boolean, creation: DateTime)
+final case class ArcgisMap(uid: Option[Int], public: Boolean, title: String, height: Int, width: Int, extent: String, graphics: Option[String], city: Boolean, creation: Option[DateTime])
 
-final case class ArcgisMapRow(tag: Tag) extends Table[(Option[Int], Boolean, String, Int, Int, String, Option[String], Boolean, DateTime)](tag, "Map") {
-  def id = column[Option[Int]]("uid", O.PrimaryKey, O.AutoInc)
+final case class ArcgisMapRow(tag: Tag) extends Table[(Option[Int], Boolean, String, Int, Int, String, Option[String], Boolean, Option[DateTime])](tag, "Map") {
+  def uid = column[Option[Int]]("uid", O.PrimaryKey, O.AutoInc)
   def public = column[Boolean]("public", O.Default(true))
   def title = column[String]("title")
   def height = column[Int]("height")
@@ -28,9 +28,9 @@ final case class ArcgisMapRow(tag: Tag) extends Table[(Option[Int], Boolean, Str
   def extent = column[String]("extent")
   def graphics = column[Option[String]]("graphics")
   def city = column[Boolean]("city")
-  def creationDate = column[DateTime]("creationDate", O.SqlType("DATETIME"))
+  def creationDate = column[Option[DateTime]]("creationDate", O.SqlType("DATETIME"))
 
-  def * = (id, public, title, height, width, extent, graphics, city, creationDate)
+  def * = (uid, public, title, height, width, extent, graphics, city, creationDate)
 
 }
 
@@ -87,13 +87,13 @@ class MapRegistryActor extends Actor with ActorLogging {
     case CreateMap(map) =>
       // Convert map to tuple
       maps += ArcgisMap.unapply(map).get
-      sender() ! ActionPerformed(s"Map ${map.id} created.")
+      sender() ! ActionPerformed(s"Map ${map.uid} created.")
 
     case GetMap(id) =>
       Try(id.toInt).toOption match {
         case None => sender() ! None
         case Some(i) =>
-          val q = maps.filter(_.id === i)
+          val q = maps.filter(_.uid === i)
           val resultSeq: Future[Seq[ArcgisMap]] = db.run(q.result).map(_.map(record => (ArcgisMap.apply _).tupled(record)))
           val result: Future[Option[ArcgisMap]] = resultSeq.map(_.headOption)
           result.pipeTo(sender)
@@ -103,7 +103,7 @@ class MapRegistryActor extends Actor with ActorLogging {
       Try(idMap.toInt) match {
         case Failure(_) => sender() ! ActionPerformed(s"Map id $idMap must be an integer")
         case Success(id) =>
-          val q = maps.filter(_.id === id)
+          val q = maps.filter(_.uid === id)
           val affectedRows: Future[Int] = db.run(q.delete)
           affectedRows.onComplete {
             case Success(_) => sender() ! ActionPerformed(s"Map $id deleted")

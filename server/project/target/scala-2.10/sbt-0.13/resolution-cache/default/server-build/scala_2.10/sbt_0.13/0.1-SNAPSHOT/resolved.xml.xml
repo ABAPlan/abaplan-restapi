@@ -4,7 +4,7 @@
 		module="server-build"
 		revision="0.1-SNAPSHOT"
 		status="integration"
-		publication="20180312093007"
+		publication="20180312113151"
 		e:sbtVersion="0.13" e:scalaVersion="2.10"
 	>
 		<description>
@@ -44,5 +44,6 @@
 		</dependency>
 		<dependency org="org.scalariform" name="sbt-scalariform" rev="1.6.0" conf="compile->default(compile)" e:sbtVersion="0.13" e:scalaVersion="2.10"/>
 		<dependency org="io.spray" name="sbt-revolver" rev="0.9.1" conf="compile->default(compile)" e:sbtVersion="0.13" e:scalaVersion="2.10"/>
+		<dependency org="com.eed3si9n" name="sbt-assembly" rev="0.14.6" conf="compile->default(compile)" e:sbtVersion="0.13" e:scalaVersion="2.10"/>
 	</dependencies>
 </ivy-module>
