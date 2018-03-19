@@ -1,15 +1,5 @@
 version: "2"
 services:
-    www:
-        build: .
-        ports: 
-            - "8001:80"
-        volumes:
-            - ./www:/var/www/html/
-        links:
-            - db
-        networks:
-            - default
     db:
         image: mysql
         ports: 
@@ -34,5 +24,13 @@ services:
             MYSQL_USER: user
             MYSQL_PASSWORD: test
             MYSQL_ROOT_PASSWORD: test 
+    www:
+        build: .
+        ports: 
+            - "8080:8080"
+        links:
+            - db
+        networks:
+            - default
 volumes:
     persistent:
