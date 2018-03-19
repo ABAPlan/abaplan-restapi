@@ -1,9 +1,9 @@
 package ch.hepia.abaplans.server
 
-import ch.hepia.abaplans.server.MapRegistryActor.ActionPerformed
+import ch.hepia.abaplans.server.MapRegistryActor.{ ActionPerformed, MapCreated }
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
-import spray.json.{ JsArray, JsObject, JsString, JsValue, RootJsonFormat }
+import spray.json.{ JsString, JsValue, RootJsonFormat }
 
 //#json-support
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
@@ -26,6 +26,7 @@ trait JsonSupport extends SprayJsonSupport {
       case JsString(s) => {
         formatter.parseDateTime(s)
       }
+      case _ => DateTime.now()
     }
 
     /*
@@ -37,13 +38,10 @@ trait JsonSupport extends SprayJsonSupport {
   }
 
   implicit val arcgisMapJsonFormat = jsonFormat9(ArcgisMap)
-
-  //implicit val dateTimeJsonFormat = jsonFormat1(DateTime)
   implicit val arcgisMapsJsonFormat = jsonFormat1(ArcgisMaps)
-
   implicit val userJsonFormat = jsonFormat3(User)
   implicit val usersJsonFormat = jsonFormat1(Users)
-
   implicit val actionPerformedJsonFormat = jsonFormat1(ActionPerformed)
+  implicit val actionMapCreatedJsonFormat = jsonFormat1(MapCreated)
 }
 //#json-support

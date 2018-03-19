@@ -46,7 +46,11 @@ val users = TableQuery[Users]
 */
 
 object MapRegistryActor {
+  // Events
   final case class ActionPerformed(description: String)
+  final case class MapCreated(id: Int)
+
+  // Commands
   final case object GetMaps
   final case class CreateMap(arcgisMap: ArcgisMap)
   final case class GetMap(id: String)
@@ -86,12 +90,13 @@ class MapRegistryActor extends Actor with ActorLogging {
 
     case CreateMap(map) =>
       // Convert map to tuple
-      println("************", map)
-      maps += (None, true, "test", 333, 444, "{id: 33}", Some("<graphics>"), true, Some(DateTime.now()))
-      val insertAction = maps += ArcgisMap.unapply(map).get
-      db.run(insertAction).map(i => println("--------", i))
-      println("************")
-      sender() ! ActionPerformed(s"Map ${map.uid} created.")
+      //maps += (None, true, "test", 333, 444, "{id: 33}", Some("<graphics>"), true, Some(DateTime.now()))
+      val newMap = map.copy(creation = Some(DateTime.now()))
+
+      val insertAction = (maps returning maps.map(_.uid) into ((map, id) => map.copy(_1 = id))) += ArcgisMap.unapply(newMap).get
+
+      val futureMap = db.run(insertAction)
+      futureMap map (m => MapCreated(m._1.getOrElse(0))) pipeTo sender()
 
     case GetMap(id) =>
       Try(id.toInt).toOption match {
