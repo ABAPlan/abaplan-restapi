@@ -17,7 +17,7 @@ object MainServer extends App with MapRoutes {
 
   lazy val routes: Route = mapRoutes
 
-  Http().bindAndHandle(routes, "192.168.1.122", 8080)
+  Http().bindAndHandle(routes, "localhost", 8080)
 
   println("Server online")
 
